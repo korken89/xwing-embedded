@@ -1,0 +1,73 @@
+X-Wing on a Cortex-M33, draft-11 vector 1:
+                                                 stack       instr
+  mlkem-otf/dalek    encapsulation_key            2856     4165461
+  mlkem-otf/dalek    expand                       2904     4591215
+  mlkem-otf/dalek    check                         552      430470
+  mlkem-otf/dalek    encapsulate                  2760     6321732
+  mlkem-otf/dalek    decapsulate                  2776     5321291
+  mlkem-otf/cortex-m encapsulation_key            2208     2723512
+  mlkem-otf/cortex-m expand                       2208     3149266
+  mlkem-otf/cortex-m check                         552      430473
+  mlkem-otf/cortex-m encapsulate                  2304     3438340
+  mlkem-otf/cortex-m decapsulate                  2840     3879752
+  ml-kem/dalek       encapsulation_key           36536     4632344
+  ml-kem/dalek       expand                      36496     4638892
+  ml-kem/dalek       check                       11116      565857
+  ml-kem/dalek       encapsulate                 28536     6200085
+  ml-kem/dalek       decapsulate                 32856     5125279
+  ml-kem/cortex-m    encapsulation_key           36536     3190395
+  ml-kem/cortex-m    expand                      36504     3196946
+  ml-kem/cortex-m    check                       11116      565858
+  ml-kem/cortex-m    encapsulate                 28624     3316655
+  ml-kem/cortex-m    decapsulate                 32920     3683739
+  mlkem-otf/dalek    decapsulate, valid and tampered ct_M and ct_X: 5321291 instructions each
+  mlkem-otf/cortex-m decapsulate, valid and tampered ct_M and ct_X: 3879752 instructions each
+
+  X25519 alone, RFC 7748 section 6.1:
+  dalek              X25519                       2664     1809247
+  cortex-m           X25519                        704      367631
+  cortex-m assembly alone                          416      366944
+  RFC 7748 sections 5.2 and 6.1, 1000 iterations: ok
+  Wycheproof x25519_test.json, 518 vectors: ok
+  Against x25519-dalek, 64 random inputs: ok
+  Draft-11 vectors with mlkem-otf: ok
+  Draft-11 vectors with ml-kem: ok
+  No secret on the stack after each X-Wing operation: ok
+  Constant time cortex-m, 64 inputs: 367802 instructions each
+  Constant time dalek, 64 inputs: 1809419 instructions each
+
+  mlkem-otf          ExpandedKeySlot size           96
+  mlkem-otf          ExpandedKey size               48
+  mlkem-otf          CheckedKey size                40
+  ml-kem             ExpandedKeySlot size         3234
+  ml-kem             ExpandedKey size               12
+  ml-kem             CheckedKey size              1604
+  .text of this binary                           86912
+  .rodata of this binary                         67132
+CortexMX25519 on a Cortex-M4:
+                                                 stack       instr
+
+  X25519 alone, RFC 7748 section 6.1:
+  dalek              X25519                       2664     1680348
+  cortex-m           X25519                        704      367599
+  cortex-m assembly alone                          416      366944
+  RFC 7748 sections 5.2 and 6.1, 1000 iterations: ok
+  Wycheproof x25519_test.json, 518 vectors: ok
+  Against x25519-dalek, 64 random inputs: ok
+  Draft-11 vectors with mlkem-otf: ok
+  Draft-11 vectors with ml-kem: ok
+  No secret on the stack after each X-Wing operation: ok
+  Constant time cortex-m, 64 inputs: 367735 instructions each
+  Constant time dalek, 64 inputs: 1680484 instructions each
+  .text of this binary                           56868
+  .rodata of this binary                         64508
+DalekX25519 without the scrub on a Cortex-M33: the residue check finds its result
+DalekX25519 without the scrub on a Cortex-M4: the residue check finds its result
+The RustCrypto x-wing crate on a Cortex-M33, draft-11 vector 1:
+                                                 stack       instr
+  x-wing             DecapsulationKey::from      44136     4537722
+  x-wing             EncapsulationKey::new       11124      565132
+  x-wing             encapsulate_deterministic   29640     6124899
+  x-wing             decapsulate                 52392     9660026
+  .text of this binary                           33544
+  .rodata of this binary                          5108

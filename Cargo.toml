@@ -1,0 +1,73 @@
+[package]
+name = "xwing-embedded"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.87"
+description = "X-Wing hybrid KEM (ML-KEM-768 + X25519) for microcontrollers, with replaceable components"
+# `LicenseRef-X25519-Cortex-M4` is `vendor/x25519-cortex-m4/LICENSE.txt`, see the README
+license = "(MIT OR Apache-2.0) AND LicenseRef-X25519-Cortex-M4"
+publish = false
+
+# `defmt`, `thiserror` and `zeroize` are lower bounds, so users can keep the versions they lock.
+[dependencies]
+curve25519-dalek = { version = "5.0.0", default-features = false, features = ["zeroize"], optional = true }
+defmt = { version = "1", optional = true }
+derive-where = "1.7.0"
+derive_more = { version = "2.1.1", default-features = false, features = ["as_ref", "from", "into"] }
+ml-kem = { version = "0.3.4", default-features = false, features = ["hazmat", "zeroize"], optional = true }
+# Not on crates.io. `hazmat` gives the encapsulation with a given `m`, which X-Wing needs.
+mlkem-otf = { git = "https://github.com/korken89/mlkem-otf", tag = "v0.1.0", optional = true, features = ["hazmat"] }
+rand_core = "0.10.1"
+sha3 = { version = "0.12", default-features = false, features = ["zeroize"] }
+shake = { version = "0.1", default-features = false, features = ["zeroize"] }
+thiserror = { version = "2", default-features = false }
+zerocopy = { version = "0.8.63", default-features = false, features = ["derive"] }
+zeroize = { version = "1.8", default-features = false, features = ["derive"] }
+
+[features]
+default = ["mlkem-otf", "x25519-dalek"]
+# ML-KEM-768 with a small stack from `mlkem-otf`.
+mlkem-otf = ["dep:mlkem-otf"]
+# ML-KEM-768 from the RustCrypto `ml-kem` crate.
+ml-kem = ["dep:ml-kem"]
+# X25519 from `curve25519-dalek`, the crate under `x25519-dalek`. Its ladder is used directly,
+# since the `x25519-dalek` functions leave the clamped secret key on the stack.
+x25519-dalek = ["dep:curve25519-dalek"]
+# X25519 in Cortex-M assembly by Emil Lenngren, for ARMv7E-M and ARMv8-M Mainline with DSP (for
+# example `-C target-cpu=cortex-m33`). DSP is optional on ARMv8-M Mainline, so the part must have
+# it too, or it faults on the first DSP instruction. On ARMv8-M Mainline it needs rustc 1.99, or
+# `codegen-units = 1` and no LTO, since older rustc fails with "instruction requires: dsp". It is
+# under its own license, see the README.
+x25519-cortex-m = []
+# `defmt::Format` on the public value types and the errors.
+defmt = ["dep:defmt", "mlkem-otf?/defmt"]
+# zerocopy traits on `EncapsulationKey`, `Ciphertext` and `X25519PublicKey`, to read and write
+# them in place in a packet.
+zerocopy = []
+
+# `x25519-cortex-m` builds only for a Cortex-M with DSP
+[package.metadata.docs.rs]
+all-features = true
+default-target = "thumbv8m.main-none-eabihf"
+rustc-args = ["-C", "target-cpu=cortex-m33"]
+targets = []
+
+[dev-dependencies]
+chacha20 = { version = "0.10.2", default-features = false, features = ["rng"] }
+hex = { version = "0.4.3", features = ["serde"] }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.154"
+static_assertions = "1.1.0"
+static_cell = "2.1.1"
+x-wing = { version = "0.1.1", features = ["hazmat"] }
+x25519-dalek = "3.0.0"
+# The tests run every backend, with the RustCrypto ML-KEM-768 as the reference.
+xwing-embedded = { path = ".", features = ["ml-kem", "mlkem-otf", "x25519-dalek"] }
+
+[lints.rust]
+missing_docs = "warn"
+unsafe_code = "deny"
+
+[lints.clippy]
+undocumented_unsafe_blocks = "warn"
+manual_let_else = "warn"

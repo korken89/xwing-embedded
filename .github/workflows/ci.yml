@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: cachix/install-nix-action@v31
+      - name: Lint
+        run: nix develop -c make lint
+      - name: Test
+        run: nix develop -c make test
+      # `x25519-cortex-m` on ARMv8-M Mainline needs `codegen-units = 1` before rustc 1.99
+      - name: Build with the minimum supported Rust version
+        env:
+          CARGO_PROFILE_RELEASE_CODEGEN_UNITS: 1
+        run: |
+          rustup toolchain install 1.87 --profile minimal \
+            --target thumbv8m.main-none-eabihf --target thumbv7em-none-eabihf
+          cargo +1.87 check --features defmt,zerocopy
+          CARGO_TARGET_THUMBV8M_MAIN_NONE_EABIHF_RUSTFLAGS=-Ctarget-cpu=cortex-m33 \
+            cargo +1.87 build --release --target thumbv8m.main-none-eabihf --all-features
+          cargo +1.87 build --release --target thumbv7em-none-eabihf --all-features

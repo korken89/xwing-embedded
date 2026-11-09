@@ -1,0 +1,6 @@
+[toolchain]
+channel = "1.99.1"
+profile = "minimal"
+components = ["rustfmt", "clippy", "rust-analyzer", "rust-src"]
+# The measurements run on a Cortex-M33 in QEMU. ARMv7E-M is a target of `x25519-cortex-m`.
+targets = ["thumbv8m.main-none-eabihf", "thumbv7em-none-eabihf"]

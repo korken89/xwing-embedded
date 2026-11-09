@@ -1,0 +1,79 @@
+[package]
+name = "measure"
+version = "0.1.0"
+edition = "2024"
+description = "Stack, code size and instruction count of X-Wing on a Cortex-M in QEMU"
+license = "MIT OR Apache-2.0"
+publish = false
+default-run = "measure"
+
+[workspace]
+
+[dependencies]
+chacha20 = { version = "0.10.2", default-features = false, features = ["rng"] }
+cortex-m = "0.7"
+cortex-m-rt = "0.7"
+# The `DalekX25519` ladder without its scrub, in the `scrub-control` binary
+curve25519-dalek = { version = "5.0.0", default-features = false }
+rand_core = "0.10.1"
+semihosting = { version = "0.1", features = ["stdio", "panic-handler"] }
+x-wing = { version = "0.1.1", default-features = false, features = ["hazmat"], optional = true }
+xwing-embedded = { path = "..", features = ["ml-kem", "x25519-cortex-m"] }
+zeroize = { version = "1.8", default-features = false }
+
+[features]
+# The `x-wing` binary, which measures the RustCrypto `x-wing` crate
+x-wing = ["dep:x-wing"]
+# The operations that the text-size binary links
+encapsulation-key = []
+expand = []
+check = []
+encapsulate = []
+decapsulate = []
+x25519 = []
+# The text-size binary with the RustCrypto ML-KEM-768
+rustcrypto = []
+# The text-size binary with `CortexMX25519`
+cortex-m = []
+
+[build-dependencies]
+hex = "0.4"
+serde_json = "1"
+sha3 = "0.12"
+shake = "0.1"
+
+[profile.release]
+codegen-units = 1
+debug = true
+lto = true
+opt-level = "s"
+
+[[bin]]
+name = "measure"
+test = false
+bench = false
+
+[[bin]]
+name = "text-size"
+test = false
+bench = false
+
+[[bin]]
+name = "x25519"
+test = false
+bench = false
+
+[[bin]]
+name = "scrub-control"
+test = false
+bench = false
+
+[[bin]]
+name = "x-wing"
+test = false
+bench = false
+required-features = ["x-wing"]
+
+[lib]
+test = false
+bench = false
